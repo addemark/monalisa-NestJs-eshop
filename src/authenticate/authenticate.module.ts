@@ -13,7 +13,6 @@ import { RolesRepository } from "src/authenticate/repositoryes/roles.repository"
 import { RolesService } from "src/authenticate/roles.service";
 import { UserHasRoleGuard } from "src/authenticate/guards/has-role.guard";
 import { ConfigModule } from "@nestjs/config";
-// import { Roles } from 'src/authenticate/entity/roles.entity';
 
 @Module({
   imports: [

@@ -20,8 +20,6 @@ import { RolesRepository } from "src/authenticate/repositoryes/roles.repository"
 import { UserRepository } from "src/authenticate/repositoryes/user.repository";
 import { Role } from "src/authenticate/types/roles.types";
 import { User } from "src/authenticate/entity/user.entity";
-import { Cookies } from "src/authenticate/decorator/get-cookies.decorator";
-import { Z_UNKNOWN } from "zlib";
 
 @Injectable()
 export class AuthenticateService {
