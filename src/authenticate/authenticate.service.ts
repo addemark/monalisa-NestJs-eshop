@@ -13,12 +13,15 @@ import {
   ConfirmationResponseDto,
   CreateUserDto,
   PhoneConfirmationDto,
+  UserActionResponse,
   UserResponseDto,
 } from "src/authenticate/dto/user.dto";
 import { RolesRepository } from "src/authenticate/repositoryes/roles.repository";
 import { UserRepository } from "src/authenticate/repositoryes/user.repository";
 import { Role } from "src/authenticate/types/roles.types";
 import { User } from "src/authenticate/entity/user.entity";
+import { Cookies } from "src/authenticate/decorator/get-cookies.decorator";
+import { Z_UNKNOWN } from "zlib";
 
 @Injectable()
 export class AuthenticateService {
@@ -40,6 +43,7 @@ export class AuthenticateService {
       else throw new InternalServerErrorException();
     }
   }
+
   async signIn(
     authCredentialsDto: CreateUserDto,
     @Res({ passthrough: true }) response: FastifyReply
@@ -61,9 +65,41 @@ export class AuthenticateService {
     const payload = { encryptedUID: user.id, roles };
     const accessToken: string = await this.jwtService.sign(payload);
 
-    response.setCookie("token", JSON.stringify({ accessToken, refreshToken }));
+    response.setCookie(
+      "token",
+      JSON.stringify({ accessToken, refreshToken, encryptedUID: user.id })
+    );
     return { accessToken, refreshToken };
   }
+
+  async refreshTokenUsingCookies(
+    @Res({ passthrough: true }) response: FastifyReply,
+    token: string
+  ): Promise<UserActionResponse> {
+    try {
+      const { refreshToken, encryptedUID } = JSON.parse(token);
+      if (!refreshToken || !encryptedUID) throw new Error("Data not valid");
+      const user = await this.userRepository.findOne({
+        where: { id: encryptedUID, isDeleted: false, phoneVerified: true },
+      });
+      if (!user || !(await bcrypt.compare(refreshToken, user.refreshToken)))
+        throw new Error("user or refresh token not valid");
+      const roles = user.roles
+        .filter((role) => !role.isDeleted)
+        .map((element) => element.role);
+      const payload = { encryptedUID, roles };
+      const accessToken: string = await this.jwtService.sign(payload);
+      response.setCookie(
+        "token",
+        JSON.stringify({ accessToken, refreshToken, encryptedUID })
+      );
+    } catch (e: unknown) {
+      response.setCookie("token", "", { expires: new Date(0) });
+      return { message: "token not updated", confirmation: false };
+    }
+    return { message: "token updated", confirmation: true };
+  }
+
   async confirmPhoneNumber(
     confirmObj: PhoneConfirmationDto
   ): Promise<ConfirmationResponseDto> {
@@ -81,6 +117,7 @@ export class AuthenticateService {
     this.userRepository.save(user);
     return { phone, confirmation: true };
   }
+
   async deleteAccount(
     userCredentials: CreateUserDto,
     @Res({ passthrough: true }) response: FastifyReply,
@@ -101,6 +138,18 @@ export class AuthenticateService {
     user.refreshToken = null;
     this.userRepository.save(user);
     response.setCookie("token", "", { expires: new Date(0) });
-    response.status(200).send({ message: "Account deleted" });
+    // response.status(200).send({ message: "Account deleted" });
+    return { message: "Account deleted", confirmation: true };
+  }
+
+  async logOut(
+    @Res({ passthrough: true }) response: FastifyReply,
+    user: User
+  ): Promise<UserActionResponse> {
+    if (!user) throw new UnauthorizedException("Please check credentials");
+    response.setCookie("token", "", { expires: new Date(0) });
+    user.refreshToken = null;
+    this.userRepository.update(user.id, user);
+    return { message: "you are logged out", confirmation: true };
   }
 }

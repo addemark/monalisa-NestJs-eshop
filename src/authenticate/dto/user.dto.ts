@@ -44,3 +44,9 @@ export class ConfirmationResponseDto {
   phone: string;
   confirmation: boolean;
 }
+export class UserActionResponse {
+  @IsNotEmpty()
+  message: string;
+  @IsNotEmpty()
+  confirmation: boolean;
+}

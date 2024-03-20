@@ -10,12 +10,14 @@ import {
 import { AuthGuard } from "@nestjs/passport";
 import { FastifyReply } from "fastify";
 import { AuthenticateService } from "src/authenticate/authenticate.service";
+import { Cookies } from "src/authenticate/decorator/get-cookies.decorator";
 import { GetUser } from "src/authenticate/decorator/get-user.decorator";
 import { Roles } from "src/authenticate/decorator/roles.decorator";
 import {
   ConfirmationResponseDto,
   CreateUserDto,
   PhoneConfirmationDto,
+  UserActionResponse,
   UserResponseDto,
 } from "src/authenticate/dto/user.dto";
 import { User } from "src/authenticate/entity/user.entity";
@@ -46,17 +48,35 @@ export class AuthenticateController {
     return this.authService.signIn(signupCredentials, response);
   }
 
+  @Get("/refresh-token-cookie")
+  refreshToken(
+    @Res({ passthrough: true }) response: FastifyReply,
+    @Cookies("token") token: string
+  ): Promise<UserActionResponse> {
+    return this.authService.refreshTokenUsingCookies(response, token);
+  }
+
   @Post("/delete-account")
   @UseGuards(AuthGuard())
   deleteAccount(
     @Body() userCredentials: CreateUserDto,
     @Res({ passthrough: true }) response: FastifyReply,
     @GetUser() user: User
-  ) {
+  ): Promise<UserActionResponse> {
     return this.authService.deleteAccount(userCredentials, response, user);
   }
+
+  @Post("/logout")
+  @UseGuards(AuthGuard())
+  logOut(
+    @Res({ passthrough: true }) response: FastifyReply,
+    @GetUser() user: User
+  ): Promise<UserActionResponse> {
+    return this.authService.logOut(response, user);
+  }
+
   @Get("/guard")
-  @Roles(Role.ADMIN, Role.USER)
+  @Roles(Role.ADMIN)
   @UseGuards(UserHasRoleGuard)
   @UseGuards(AuthGuard())
   test(@Req() req, @GetUser() user: User) {
