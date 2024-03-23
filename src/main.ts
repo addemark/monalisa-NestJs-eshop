@@ -23,12 +23,12 @@ async function bootstrap() {
   await app.register(fastifyCookie, {
     secret: process.env.COOKIE_SECRET, // for cookies signature
   });
-  //this must be enabled when having different domains for
-  //front and backend
-  // app.enableCors({
-  //   origin: "http://yourfrontenddomain.com",
-  //   credentials: true,
-  // });
+  // this must be enabled when having different domains for
+  // front and backend
+  app.enableCors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  });
   await app.listen(3010);
 }
 bootstrap();
