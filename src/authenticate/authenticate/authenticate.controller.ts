@@ -9,7 +9,7 @@ import {
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { FastifyReply } from "fastify";
-import { AuthenticateService } from "src/authenticate/authenticate.service";
+import { AuthenticateService } from "src/authenticate/authenticate/authenticate.service";
 import { Cookies } from "src/authenticate/decorator/get-cookies.decorator";
 import { GetUser } from "src/authenticate/decorator/get-user.decorator";
 import { Roles } from "src/authenticate/decorator/roles.decorator";

@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { AuthenticateModule } from './authenticate/authenticate.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ConfigModule } from '@nestjs/config';
         rejectUnauthorized: false,
       },
     }),
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],

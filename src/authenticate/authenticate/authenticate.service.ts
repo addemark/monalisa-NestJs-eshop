@@ -145,9 +145,14 @@ export class AuthenticateService {
     user: User
   ): Promise<UserActionResponse> {
     if (!user) throw new UnauthorizedException("Please check credentials");
-    response.setCookie("token", "", { expires: new Date(0) });
-    user.refreshToken = null;
-    this.userRepository.update(user.id, user);
+    try {
+      response.setCookie("token", "", { expires: new Date(0) });
+      user.refreshToken = null;
+      this.userRepository.save(user);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "something is wrong";
+      throw new Error(message);
+    }
     return { message: "you are logged out", confirmation: true };
   }
 }
