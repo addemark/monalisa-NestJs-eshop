@@ -38,7 +38,10 @@ export class AuthenticateService {
     } catch (error) {
       if (error.code === "23505")
         throw new ConflictException("phone it is used");
-      else throw new InternalServerErrorException();
+      else {
+        console.log("error", error);
+        throw new InternalServerErrorException();
+      }
     }
   }
 
@@ -106,10 +109,10 @@ export class AuthenticateService {
       where: {
         phoneNumber: phone,
         isDeleted: false,
-        phoneVerificationCode: code,
       },
     });
-    if (!user) return { phone, confirmation: false };
+    if (!user && !(await bcrypt.compare(code, user.phoneVerificationCode)))
+      return { phone, confirmation: false };
     user.phoneVerified = true;
     user.phoneVerificationCode = null;
     this.userRepository.save(user);

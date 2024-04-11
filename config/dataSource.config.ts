@@ -17,8 +17,9 @@ export function getConfig() {
     migrations: [__dirname + "/migrations/**/*.{ts,js}"],
     entities: [__dirname + "/../src/**/entity/*.{ts,js}"],
     migrationsTableName: "custom_migrations",
-    ssl: {
-      rejectUnauthorized: false,
-    },
+    //ssl is required on cloud
+    // ssl: {
+    //   rejectUnauthorized: false,
+    // },
   } as DataSourceOptions;
 }
