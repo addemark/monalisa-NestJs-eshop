@@ -16,17 +16,19 @@ import {
   UserActionResponse,
   UserResponseDto,
 } from "src/authenticate/dto/user.dto";
-import { RolesRepository } from "src/authenticate/repositoryes/roles.repository";
-import { UserRepository } from "src/authenticate/repositoryes/user.repository";
+import { RolesRepository } from "src/authenticate/repositories/roles.repository";
+import { UserRepository } from "src/authenticate/repositories/user.repository";
 import { Role } from "src/authenticate/types/roles.types";
 import { User } from "src/authenticate/entity/user.entity";
+import { SmsNotificationRepository } from "src/notification/repositories/smsNotification.repository";
 
 @Injectable()
 export class AuthenticateService {
   constructor(
     private userRepository: UserRepository,
     private jwtService: JwtService,
-    private rolesRepository: RolesRepository
+    private rolesRepository: RolesRepository,
+    private smsNotificationRepository: SmsNotificationRepository
   ) {}
 
   async signUp(creteUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -34,14 +36,15 @@ export class AuthenticateService {
       const role = await this.rolesRepository.find({
         where: { role: Role.USER, isDeleted: false },
       });
-      return await this.userRepository.createUser(creteUserDto, role[0]);
+      return await this.userRepository.createUser(
+        creteUserDto,
+        role[0],
+        this.smsNotificationRepository.saveSmsNotification
+      );
     } catch (error) {
       if (error.code === "23505")
         throw new ConflictException("phone it is used");
-      else {
-        console.log("error", error);
-        throw new InternalServerErrorException();
-      }
+      else throw new InternalServerErrorException();
     }
   }
 
@@ -102,16 +105,19 @@ export class AuthenticateService {
   }
 
   async confirmPhoneNumber(
-    confirmObj: PhoneConfirmationDto
+    confirmDto: PhoneConfirmationDto
   ): Promise<ConfirmationResponseDto> {
-    const { phone, code } = confirmObj;
+    const { phone, code } = confirmDto;
     const user = await this.userRepository.findOne({
       where: {
         phoneNumber: phone,
         isDeleted: false,
       },
     });
-    if (!user && !(await bcrypt.compare(code, user.phoneVerificationCode)))
+    if (
+      !user ||
+      !(await bcrypt.compare(code, user.phoneVerificationCode || ""))
+    )
       return { phone, confirmation: false };
     user.phoneVerified = true;
     user.phoneVerificationCode = null;

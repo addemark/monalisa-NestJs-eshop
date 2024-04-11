@@ -1,27 +1,20 @@
-import { Exclude } from "class-transformer";
 import { User } from "src/authenticate/entity/user.entity";
-import { Role } from "../types/roles.types";
 import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   VersionColumn,
 } from "typeorm";
 
 @Entity()
-export class Roles {
+export class SmsNotification {
   @PrimaryGeneratedColumn("uuid")
   id: string;
-  @VersionColumn({
-    nullable: true,
-    default: 1,
-  })
-  version: number | null;
-  @Column({ nullable: false, default: false })
-  isDeleted: boolean;
+  @Column({ nullable: false, unique: true })
+  notificationId: string;
   @CreateDateColumn({
     nullable: false,
     default: () => "CURRENT_TIMESTAMP",
@@ -35,9 +28,13 @@ export class Roles {
     onUpdate: "CURRENT_TIMESTAMP",
   })
   updatedAt: Date;
-  @Column({ type: "varchar", nullable: false, unique: true })
-  role: Role;
-  @Exclude({ toPlainOnly: true })
-  @ManyToMany(() => User, (user) => user.roles, { lazy: true })
-  users: User[];
+  @VersionColumn({
+    nullable: true,
+    default: 1,
+  })
+  version: number | null;
+  @Column({ nullable: false, default: false })
+  status: string;
+  @ManyToOne(() => User, (user) => user.smsNotifications)
+  user: User;
 }

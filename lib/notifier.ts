@@ -1,4 +1,5 @@
-import { error } from "console";
+import { User } from "src/authenticate/entity/user.entity";
+import { NotificationCallback } from "src/authenticate/types/user.types";
 import { Twilio } from "twilio";
 
 export type TNotificationParams = {
@@ -7,13 +8,22 @@ export type TNotificationParams = {
   twilioNumber: string;
   message?: string;
   destinationNumber: string;
+  callBackFunction: NotificationCallback;
+  user: User;
 };
 
 export { sendNotification };
 
 function sendNotification(params: TNotificationParams) {
-  const { authToken, accountSid, destinationNumber, message, twilioNumber } =
-    params;
+  const {
+    authToken,
+    accountSid,
+    destinationNumber,
+    message,
+    twilioNumber,
+    callBackFunction,
+    user,
+  } = params;
 
   const client = new Twilio(accountSid, authToken);
   client.messages
@@ -22,7 +32,9 @@ function sendNotification(params: TNotificationParams) {
       to: destinationNumber,
       body: message,
     })
-    .then((message) => console.log(message.sid))
+    .then((message) => {
+      callBackFunction(message.sid, message.status, user);
+    })
     .catch((error) => {
       throw new Error("Error sending sms");
     });

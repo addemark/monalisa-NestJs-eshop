@@ -1,10 +1,12 @@
 import { Roles } from "src/authenticate/entity/roles.entity";
+import { SmsNotification } from "src/notification/entity/smsNotification.entity";
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   VersionColumn,
@@ -69,4 +71,6 @@ export class User {
     nullable: true,
   })
   refreshToken: string;
+  @OneToMany(() => SmsNotification, (notification) => notification.user)
+  smsNotifications: SmsNotification[];
 }
