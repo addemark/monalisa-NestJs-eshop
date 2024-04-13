@@ -32,8 +32,9 @@ function sendNotification(params: TNotificationParams) {
       to: destinationNumber,
       body: message,
     })
-    .then((message) => {
-      callBackFunction(message.sid, message.status, user);
+    .then((message) => message.fetch())
+    .then((data) => {
+      callBackFunction(data.sid, data.status, user);
     })
     .catch((error) => {
       throw new Error("Error sending sms");
