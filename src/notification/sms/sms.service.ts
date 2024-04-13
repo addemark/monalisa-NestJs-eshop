@@ -52,7 +52,6 @@ export class SmsService {
                 callBackFunction: this.smsRepository.saveSmsNotification,
                 user: element.user,
               });
-            console.log("000000000", message);
           })
           .catch((error) => {
             throw new InternalServerErrorException("error resending message");
