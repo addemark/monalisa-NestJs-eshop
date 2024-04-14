@@ -11,7 +11,7 @@ import {
 import { SmsNotification } from "src/notification/entity/smsNotification.entity";
 import { SmsNotificationRepository } from "src/notification/repositories/smsNotification.repository";
 import { Twilio } from "twilio";
-import { FindManyOptions, FindOptionsWhere, In } from "typeorm";
+import { In } from "typeorm";
 
 @Injectable()
 export class SmsService {
